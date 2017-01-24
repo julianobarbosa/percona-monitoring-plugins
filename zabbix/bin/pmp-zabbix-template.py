@@ -123,7 +123,7 @@ tmpl = dict()
 app_name = data['name'].split()[0]
 tmpl_name = 'Percona %s Template' % data['name']
 tmpl['version'] = ZABBIX_VERSION
-tmpl['date'] = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime())
+tmpl['date'] = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
 tmpl['groups'] = {'group': {'name': 'Percona Templates'}}
 tmpl['screens'] = {'screen': {'name': '%s Graphs' % app_name,
                               'hsize': 2,
@@ -151,13 +151,18 @@ for graph in data['graphs']:
     z_graph = {'name': graph['name'],
                'width': 900,
                'height': 200,
-               'graphtype': graph_types['Normal'],
+               # 'graphtype': graph_types['Normal'],
                'show_legend': 1,
                'show_work_period': 1,
                'show_triggers': 1,
-               'ymin_type': 0,  # Calculated
-               'ymax_type': 0,  # Calculated
+               # 'ymin_type': 0,  # Calculated
+               # 'ymax_type': 0,  # Calculated
+               'type': '',
+               'yaxismax': 0,
+               'yaxismin': 0,
+               'ymin_type_1': 0,
                'ymin_item_1': 0,
+               'ymax_type_1': 0,
                'ymax_item_1': 0,
                'show_3d': 0,
                'percent_left': '0.00',
@@ -201,6 +206,9 @@ for graph in data['graphs']:
                      'height': 120,
                      'valign': 1,  # Middle
                      'halign': 0,  # Center
+                     'elements': 0,
+                     'style': 0,
+                     'sort_triggers': 0,
                      'colspan': 1,
                      'rowspan': 1,
                      'x': x,
@@ -242,6 +250,28 @@ for graph in data['graphs']:
                       'delay': 300,  # Update interval (in sec)
                       'history': 90,
                       'trends': 365,
+                      'snmp_community': '',
+                      'snmp_oid': '',
+                      'snmpv3_contextname': '',
+                      'snmpv3_securityname': '',
+                      'snmpv3_securitylevel': 0,
+                      'snmpv3_privpassphrase': 0,
+                      'snmpv3_authprotocol': 0,
+                      'snmpv3_authpassphrase': '',
+                      'snmpv3_privprotocol': 0,
+                      'delay_flex': 0,
+                      'params': '',
+                      'ipmi_sensor': '',
+                      'authtype': '',
+                      'username': '',
+                      'password': '',
+                      'publickey': '',
+                      'privatekey': '',
+                      'port': '',
+                      'valuemap': '',
+                      'applications': '',
+                      'inventory_link': '',
+                      'allowed_hosts': '',
                       'delta': item_store_values[ds_type],
                       'applications': {'application': {'name': app_name }},
                       'description': '%s %s' % (app_name, name),
@@ -267,9 +297,33 @@ if output == 'xml':
                   'delay': 60,  # Update interval (in sec)
                   'history': 90,
                   'trends': 365,
+                  'snmp_community': '',
+                  'snmp_oid': '',
+                  'snmpv3_contextname': '',
+                  'snmpv3_securityname': '',
+                  'snmpv3_securitylevel': 0,
+                  'snmpv3_privpassphrase': 0,
+                  'snmpv3_authprotocol': 0,
+                  'snmpv3_authpassphrase': '',
+                  'snmpv3_privprotocol': 0,
+                  'delay_flex': 0,
+                  'params': '',
+                  'ipmi_sensor': '',
+                  'authtype': '',
+                  'username': '',
+                  'password': '',
+                  'publickey': '',
+                  'privatekey': '',
+                  'port': '',
+                  'valuemap': '',
                   'delta': 0,  # As is
                   'applications': {'application': {'name': app_name }},
                   'description': item['name'],
+                  'multiplier': 0,
+                  'inventory_link': '',
+                  'allowed_hosts': '',
+                  'units': unit,
+                  'formula': 0,
                   'status': 0}
         tmpl['templates']['template']['items']['item'].append(z_item)
 
@@ -283,9 +337,12 @@ if output == 'xml':
         tmpl['triggers'] = {'trigger': []}
     for trigger in data:
         z_trigger = {'name': trigger['name'],
+                     'description': trigger['name'],
                      'expression': trigger['expression'].replace('TEMPLATE', tmpl_name),
                      'priority': trigger_severities[trigger.get('severity', 'Not_classified')],
                      'status': 0,  # Enabled
+                     'type': '',
+                     'url': '',
                      'dependencies': ''}
         # Populate trigger dependencies
         if trigger.get('dependencies'):
